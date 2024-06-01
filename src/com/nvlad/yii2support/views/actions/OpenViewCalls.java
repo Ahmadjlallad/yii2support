@@ -30,7 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OpenViewCalls extends AnAction {
-
     @Override
     public void actionPerformed(AnActionEvent e) {
         // TODO: insert action logic here
@@ -51,10 +50,10 @@ public class OpenViewCalls extends AnAction {
             return;
         }
 
-        BaseListPopupStep popupStep = new ReferenceListPopupStep("Render this View from", references);
-        ListPopup popup = new ListPopupImpl(popupStep) {
+        BaseListPopupStep<PsiReference> popupStep = new ReferenceListPopupStep("Render this View from", references);
+        ListPopup popup = new ListPopupImpl(e.getProject(), popupStep) {
             @Override
-            protected ListCellRenderer getListElementRenderer() {
+            protected ListCellRenderer<?> getListElementRenderer() {
                 return new ListCellRendererWithRightAlignedComponent<PsiReference>() {
                     @Override
                     protected void customize(PsiReference reference) {
@@ -78,6 +77,7 @@ public class OpenViewCalls extends AnAction {
                         Project project = methodElement.getProject();
                         VirtualFile virtualFile = FileUtil.getVirtualFile(methodElement.getContainingFile());
                         String fileName = virtualFile.getUrl().replace(project.getBaseDir().getUrl(), "");
+
 
                         Document document = PsiDocumentManager.getInstance(project).getDocument(methodElement.getContainingFile());
                         if (document != null) {

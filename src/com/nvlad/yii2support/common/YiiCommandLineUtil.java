@@ -4,17 +4,13 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.PathMappingSettings;
 import com.jetbrains.php.config.commandLine.PhpCommandSettings;
 import com.jetbrains.php.config.commandLine.PhpCommandSettingsBuilder;
-import com.jetbrains.php.remote.interpreter.PhpRemoteSdkAdditionalData;
 import com.jetbrains.php.run.remote.PhpRemoteInterpreterManager;
 import org.jetbrains.annotations.Nullable;
-
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,13 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class YiiCommandLineUtil {
-    private static final boolean is2016 = ApplicationInfo.getInstance().getMajorVersion().equals("2016");
-
     private static final String[] knownErrors = new String[]{
             "userName must not be null",
             "Auth cancel",
             "PHP home is not specified or invalid.",
-            PhpCommandSettingsBuilder.INTERPRETER_NOT_FOUND_ERROR,
+            PhpCommandSettingsBuilder.getInterpreterNotFoundError(),
     };
 
     public static GeneralCommandLine create(Project project, String command) throws ExecutionException {
@@ -53,43 +47,8 @@ public class YiiCommandLineUtil {
     @Nullable
     public static ProcessHandler configureHandler(Project project, String command, List<String> parameters) throws ExecutionException {
         parameters.add("--color");
-
         PhpCommandSettings commandSettings = commandSettings(project, command, parameters);
         GeneralCommandLine commandLine = commandSettings.createGeneralCommandLine();
-        if (commandSettings.isRemote()) {
-            PhpRemoteInterpreterManager interpreterManager = PhpRemoteInterpreterManager.getInstance();
-            if (interpreterManager == null) {
-                return null;
-            }
-
-            PhpRemoteSdkAdditionalData additionalData = (PhpRemoteSdkAdditionalData) commandSettings.getAdditionalData();
-            if (additionalData == null) {
-                return null;
-            }
-
-            try {
-                Method getRemoteProcessHandler = getMethod(interpreterManager);
-                if (is2016) {
-                    return (ProcessHandler) getRemoteProcessHandler
-                            .invoke(interpreterManager, project, "Unknown string", additionalData, commandLine);
-                } else {
-                    PathMappingSettings.PathMapping[] pathMappings = new PathMappingSettings.PathMapping[0];
-                    if (getRemoteProcessHandler.getParameterCount() == 5) {
-                        return (ProcessHandler) getRemoteProcessHandler
-                                .invoke(interpreterManager, project, additionalData, commandLine, true, pathMappings);
-
-                    }
-
-                    return (ProcessHandler) getRemoteProcessHandler
-                            .invoke(interpreterManager, project, additionalData, commandLine, pathMappings);
-                }
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                processError(e);
-            }
-
-            return null;
-        }
-
         return new OSProcessHandler(commandLine);
     }
 

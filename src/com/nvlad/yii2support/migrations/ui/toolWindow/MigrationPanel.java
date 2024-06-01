@@ -10,6 +10,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
 import com.nvlad.yii2support.migrations.actions.*;
@@ -64,17 +65,12 @@ public class MigrationPanel extends SimpleToolWindowPanel {
 //        return myMigrationMap;
 //    }
 
-    private void initActivationListener(ToolWindow toolWindow) {
-        toolWindow.getActivation().doWhenDone(() -> {
-//            boolean newestFirst = Yii2SupportSettings.getInstance(myProject).newestFirst;
-            MigrationService service = MigrationService.getInstance(myProject);
-
-            service.sync();
-            updateTree();
-
-            DefaultTreeModel treeModel = ((DefaultTreeModel) myTree.getModel());
-            treeModel.nodeStructureChanged((TreeNode) treeModel.getRoot());
-        });
+    private void initActivationListener() {
+        MigrationService service = MigrationService.getInstance(myProject);
+        service.sync();
+        updateTree();
+        DefaultTreeModel treeModel = ((DefaultTreeModel) myTree.getModel());
+        treeModel.nodeStructureChanged((TreeNode) treeModel.getRoot());
     }
 
     private void initContent() {
@@ -87,7 +83,7 @@ public class MigrationPanel extends SimpleToolWindowPanel {
         myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
         JBScrollPane scrollPane = new JBScrollPane(myTree);
-        UIUtil.removeScrollBorder(scrollPane);
+        ScrollPaneFactory.createScrollPane(scrollPane);
         setContent(scrollPane);
     }
 

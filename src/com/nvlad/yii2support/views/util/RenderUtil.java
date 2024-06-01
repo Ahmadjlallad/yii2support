@@ -25,8 +25,7 @@ public class RenderUtil {
         }
 
         final PsiElement parameter = parameterList.getParameters()[1];
-        if (parameter instanceof ArrayCreationExpression) {
-            final ArrayCreationExpression array = (ArrayCreationExpression) parameter;
+        if (parameter instanceof ArrayCreationExpression array) {
             for (ArrayHashElement item : array.getHashElements()) {
                 PhpPsiElement keyElement = item.getKey();
 

@@ -26,18 +26,19 @@ public class MigrationsToolWindowFactory implements ToolWindowFactory {
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         MigrationPanel migrationPanel = new MigrationPanel(project, toolWindow);
         ConsolePanel consolePanel = new ConsolePanel(project);
+        ToolWindowManagerEx projectToolManger = (ToolWindowManagerEx) ToolWindowManager.getInstance(project);
+        projectToolManger.addToolWindowManagerListener(
+                new MigrationToolWindowManagerListener(project, migrationPanel.getTree())
+        );
 
-        ((ToolWindowManagerEx) ToolWindowManager.getInstance(project))
-                .addToolWindowManagerListener(new MigrationToolWindowManagerListener(project, migrationPanel.getTree()));
-
-        Content navigator = ContentFactory.SERVICE.getInstance().createContent(migrationPanel, "Explorer", false);
+        Content navigator = ContentFactory.getInstance().createContent(migrationPanel, "Explorer", false);
         toolWindow.getContentManager().addContent(navigator);
 
-        Content console = ContentFactory.SERVICE.getInstance().createContent(consolePanel, "Output", false);
+        Content console = ContentFactory.getInstance().createContent(consolePanel, "Output", false);
         toolWindow.getContentManager().addContent(console);
     }
 
-    class MigrationToolWindowManagerListener implements ToolWindowManagerListener {
+    static class MigrationToolWindowManagerListener implements ToolWindowManagerListener {
         private final Project myProject;
         private final MigrationsVirtualFileMonitor fileMonitor;
         private final VirtualFileSystem fileSystem;
@@ -51,10 +52,6 @@ public class MigrationsToolWindowFactory implements ToolWindowFactory {
             fileSystem = myProject.getBaseDir().getFileSystem();
             service = MigrationService.getInstance(project);
             serviceListener = new ServiceListener(tree, project);
-        }
-
-        @Override
-        public void toolWindowRegistered(@NotNull String s) {
         }
 
         @Override
@@ -83,7 +80,7 @@ public class MigrationsToolWindowFactory implements ToolWindowFactory {
         }
     }
 
-    class ServiceListener implements MigrationServiceListener {
+    static class ServiceListener implements MigrationServiceListener {
         private final JTree myTree;
         private final MigrationService service;
         private final Yii2SupportSettings settings;

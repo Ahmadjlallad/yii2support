@@ -46,40 +46,40 @@ public class ViewUtil {
 
         String path = absolutePath.substring(projectBaseDirLength);
         //if (!path.startsWith("/vendor/")) {
-            ViewResolve result = new ViewResolve();
-            result.application = YiiApplicationUtils.getApplicationName(virtualFile, project);
-            result.theme = "";
-            if (path.startsWith("/" + result.application + "/")) {
-                path = path.substring(result.application.length() + 1);
-            }
+        ViewResolve result = new ViewResolve();
+        result.application = YiiApplicationUtils.getApplicationName(virtualFile, project);
+        result.theme = "";
+        if (path.startsWith("/" + result.application + "/")) {
+            path = path.substring(result.application.length() + 1);
+        }
 
-            result.relativePath = path;
-            path = "@app" + path;
-            if (!path.startsWith("@app/views/")
-                    && !(path.startsWith("@app/modules/") && path.contains("/views/"))
-                    && !(path.startsWith("@app/widgets/") && path.contains("/views/"))) {
-                String viewPath = null;
-                for (Map.Entry<Pattern, String> entry : ViewUtil.getPatterns(project).entrySet()) {
-                    Matcher matcher = entry.getKey().matcher(path);
-                    if (matcher.find()) {
-                        viewPath = entry.getValue() + path.substring(matcher.end(1));
-                        if (matcher.groupCount() == 2) {
-                            result.theme = matcher.group(2);
-                        }
-
-                        break;
+        result.relativePath = path;
+        path = "@app" + path;
+        if (!path.startsWith("@app/views/")
+                && !(path.startsWith("@app/modules/") && path.contains("/views/"))
+                && !(path.startsWith("@app/widgets/") && path.contains("/views/"))) {
+            String viewPath = null;
+            for (Map.Entry<Pattern, String> entry : ViewUtil.getPatterns(project).entrySet()) {
+                Matcher matcher = entry.getKey().matcher(path);
+                if (matcher.find()) {
+                    viewPath = entry.getValue() + path.substring(matcher.end(1));
+                    if (matcher.groupCount() == 2) {
+                        result.theme = matcher.group(2);
                     }
-                }
 
-                if (viewPath == null) {
-                    return null;
+                    break;
                 }
-
-                path = viewPath;
             }
-            result.key = path;
 
-            return result;
+            if (viewPath == null) {
+                return null;
+            }
+
+            path = viewPath;
+        }
+        result.key = path;
+
+        return result;
         //}
 
         //return null;
@@ -93,6 +93,7 @@ public class ViewUtil {
             resolve.application = YiiApplicationUtils.getApplicationName(element.getContainingFile());
             return resolve;
         }
+
         if (value.startsWith("//")) {
             ViewResolve resolve = new ViewResolve("@app/views" + value.substring(1));
             resolve.application = YiiApplicationUtils.getApplicationName(element.getContainingFile());
@@ -103,6 +104,7 @@ public class ViewUtil {
         if (method == null || method.getClassReference() == null) {
             return null;
         }
+
         PhpClass callerClass = ClassUtils.getPhpClassByCallChain(method);
         if (callerClass == null) {
             return null;
@@ -240,14 +242,14 @@ public class ViewUtil {
     }
 
     @Nullable
-    public static String getModuleName(String fileUrl){
-        if(fileUrl.startsWith("/")){
+    public static String getModuleName(String fileUrl) {
+        if (fileUrl.startsWith("/")) {
             fileUrl = fileUrl.substring(1);
         }
-        if(fileUrl.contains("/views")){
+        if (fileUrl.contains("/views")) {
             int idx = fileUrl.indexOf("/views");
             return fileUrl.substring(0, idx);
-        }else if(fileUrl.contains("/controllers")){
+        } else if (fileUrl.contains("/controllers")) {
             int idx = fileUrl.indexOf("/controllers");
             return fileUrl.substring(0, idx);
         }
@@ -263,10 +265,10 @@ public class ViewUtil {
 
         String moduleName = getModuleName(classFQN);
         int controllersIdx = classFQN.indexOf("/controllers");
-        if(moduleName != null && controllersIdx > -1){
+        if (moduleName != null && controllersIdx > -1) {
             result.application = moduleName;
-            path = classFQN.substring(controllersIdx+12);
-        }else {
+            path = classFQN.substring(controllersIdx + 12);
+        } else {
             if (path.startsWith("/modules/")) {
                 key.append("/modules");
                 path = deletePathPart(path);
@@ -364,7 +366,7 @@ public class ViewUtil {
     private static String getFirstPathPart(String path) {
         int start = path.startsWith("/") ? 1 : 0;
         int end = path.indexOf('/', start) - 1;
-        return end == -1 ? path : path.substring(start, end+1);
+        return end == -1 ? path : path.substring(start, end + 1);
     }
 
     private static String normalizePath(String path) {

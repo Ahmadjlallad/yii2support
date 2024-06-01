@@ -1,13 +1,10 @@
-import io.gitlab.arturbosch.detekt.Detekt
-import org.jetbrains.changelog.closure
-import org.jetbrains.changelog.markdownToHTML
-
 plugins {
     id("java")
-//    id("org.jetbrains.kotlin.jvm") version "1.4.10"
-    id("org.jetbrains.intellij") version "0.7.2"
-    id("org.jetbrains.changelog") version "1.1.2"
-    id("io.gitlab.arturbosch.detekt") version "1.14.2"
+//    id("org.jetbrains.kotlin.jvm") version "2.0.0"
+    id("org.jetbrains.intellij") version "1.17.3"
+    id("org.jetbrains.changelog") version "2.2.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.6"
+    id("idea")
 }
 
 // Import variables from gradle.properties file
@@ -32,13 +29,15 @@ platformPluginsAssociation["2020.2.3"] = "com.jetbrains.php:202.7660.42, org.jet
 platformPluginsAssociation["2020.3.3"] = "com.jetbrains.php:203.7717.11, org.jetbrains.plugins.phpstorm-remote-interpreter:203.5981.155, com.jetbrains.twig:203.6682.75"
 platformPluginsAssociation["2021.1"] = "com.jetbrains.php:211.6693.120, org.jetbrains.plugins.phpstorm-remote-interpreter:211.6693.65, com.jetbrains.twig:211.6693.44, PsiViewer:211-SNAPSHOT"
 platformPluginsAssociation["2021.2"] = "com.jetbrains.php:212.4746.92, org.jetbrains.plugins.phpstorm-remote-interpreter:212.4746.52, com.jetbrains.twig:212.4746.57, PsiViewer:212-SNAPSHOT"
-val bundledPlugins = "DatabaseTools, webDeployment, CSS, terminal, coverage, java-i18n, remote-run, properties"
+platformPluginsAssociation["2022.3"] = "com.jetbrains.php:223.8617.59, org.jetbrains.plugins.phpstorm-remote-interpreter:223.7571.117, com.jetbrains.twig:223.8617.59, PsiViewer:2022.3"
+platformPluginsAssociation["2024.1"] =
+    "com.jetbrains.php:241.14494.237, org.jetbrains.plugins.phpstorm-remote-interpreter, com.jetbrains.twig, PsiViewer:241.14494.158-EAP-SNAPSHOT"
 
+val bundledPlugins = "DatabaseTools, webDeployment, com.intellij.css, terminal, com.intellij.properties:241.14494.150"
 val platformPlugins = platformPluginsAssociation[platformVersion] + ", $bundledPlugins"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
@@ -53,14 +52,9 @@ dependencies {
 }
 
 intellij {
-    pluginName = pluginName_
-    version = platformVersion
-    type = platformType
-    downloadSources = platformDownloadSources.toBoolean()
-    updateSinceUntilBuild = true
-
-    // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-    setPlugins(*platformPlugins.split(',').map(String::trim).filter(String::isNotEmpty).toTypedArray())
+    version.set(platformVersion)
+    type.set("PS")
+    plugins.set(listOf(*platformPlugins.split(',').map(String::trim).filter(String::isNotEmpty).toTypedArray()))
 }
 
 sourceSets {
@@ -81,53 +75,30 @@ sourceSets {
 }
 
 tasks {
-    // Set the compatibility versions to 1.8
-    withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+    named<Zip>("buildPlugin") {
+        archiveFileName = "yii2support.zip"
     }
 
-    withType<Detekt> {
-        jvmTarget = "1.8"
+    // Set the compatibility versions to 1.8
+    withType<JavaCompile> {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
 
     patchPluginXml {
-        version(pluginVersion)
-        sinceBuild(pluginSinceBuild)
-        untilBuild(null)
-
-        // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
-        pluginDescription(
-            closure {
-                File(projectDir,"./DESCRIPTION.md").readText().lines().joinToString("\n").run { markdownToHTML(this) }
-            }
-        )
-
-        // Get the latest available change notes from the changelog file
-//        changeNotes(
-//                closure {
-//                    changelog.getLatest().toHTML()
-//                }
-//        )
+        version.set(pluginVersion)
+        untilBuild.set("")
     }
 
-    test {
-        //useJUnitPlatform()
-        reports {
-            junitXml.isEnabled = true
-        }
-    }
-
-    runPluginVerifier {
-        ideVersions(pluginVerifierIdeVersions)
-    }
-
+//    runPluginVerifier  {
+//        ideVersions.set(listOf(*pluginVerifierIdeVersions.split(',').map(String::trim).filter(String::isNotEmpty).toTypedArray()))
+//    }
     publishPlugin {
         dependsOn("patchChangelog")
-        token(System.getenv("PUBLISH_TOKEN"))
+        token.set(System.getenv("PUBLISH_TOKEN"))
         // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://jetbrains.org/intellij/sdk/docs/tutorials/build_system/deployment.html#specifying-a-release-channel
-        channels(pluginVersion.split('-').getOrElse(1) { "default" }.split('.').first())
+        channels.set(listOf("beta"))
     }
 }

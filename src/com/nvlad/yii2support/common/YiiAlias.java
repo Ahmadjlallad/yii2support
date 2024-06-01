@@ -1,18 +1,15 @@
 package com.nvlad.yii2support.common;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.nvlad.yii2support.utils.Yii2SupportSettings;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 public class YiiAlias {
-    private static Map<Project, YiiAlias> yiiProjectAliasMap = new HashMap<>();
+    private static final Map<Project, YiiAlias> yiiProjectAliasMap = new HashMap<>();
 
     public static YiiAlias getInstance(Project project) {
         if (!yiiProjectAliasMap.containsKey(project)) {
@@ -22,12 +19,10 @@ public class YiiAlias {
         return yiiProjectAliasMap.get(project);
     }
 
-    private final Project myProject;
     private final Map<String, String> myAliasMap;
     private final Map<String, String> myResolvedAliasCache;
 
     protected YiiAlias(Project project) {
-        myProject = project;
         myAliasMap = new HashMap<>(new WeakHashMap<>(Yii2SupportSettings.getInstance(project).aliasMap));
         myResolvedAliasCache = new HashMap<>();
     }
@@ -49,20 +44,9 @@ public class YiiAlias {
             return null;
         }
 
-        myResolvedAliasCache.put(alias, StringUtils.stripStart(path, "/"));
+        myResolvedAliasCache.put(alias, path.replaceFirst("^/+", ""));
 
         return myResolvedAliasCache.get(alias);
-    }
-
-    public VirtualFile resolveVirtualFile(@NotNull String alias, boolean console) {
-        String path = resolveAlias(alias, console);
-        if (path == null) {
-            return null;
-        }
-
-        path = YiiApplicationUtils.getYiiRootPath(myProject) + "/" + path;
-
-        return myProject.getBaseDir().getFileSystem().findFileByPath(path);
     }
 
     @Nullable

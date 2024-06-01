@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -111,7 +112,7 @@ class CompletionProvider extends com.intellij.codeInsight.completion.CompletionP
                     continue;
                 }
 
-                PsiFile psiFile = psiManager.findFile(view.getVirtualFile());
+                PsiFile psiFile = psiManager.findFile(Objects.requireNonNull(view.getVirtualFile()));
                 if (psiFile != null) {
                     String insertText = key.substring(prefixLength);
                     if (insertText.endsWith(defaultViewExtension)) {

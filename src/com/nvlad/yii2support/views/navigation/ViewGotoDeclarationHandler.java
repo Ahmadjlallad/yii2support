@@ -30,41 +30,41 @@ public class ViewGotoDeclarationHandler implements GotoDeclarationHandler {
         }
 
         Set<PsiElement> result = new HashSet<>();
-
         final ViewResolve resolve = ViewUtil.resolveView(psiElement);
-        if (resolve != null) {
-            Project project = psiElement.getProject();
+        if (null == resolve) {
+            return result.toArray(new PsiElement[0]);
+        }
 
-            String key = resolve.key;
-            if (FileUtilRt.getExtension(key).isEmpty()) {
-                key = key + '.' + Yii2SupportSettings.getInstance(psiElement.getProject()).defaultViewExtension;
+        Project project = psiElement.getProject();
+        String key = resolve.key;
+        if (FileUtilRt.getExtension(key).isEmpty()) {
+            key = key + '.' + Yii2SupportSettings.getInstance(psiElement.getProject()).defaultViewExtension;
+        }
+
+        final Collection<ViewInfo> views = FileBasedIndex.getInstance()
+                .getValues(ViewFileIndex.identity, key, GlobalSearchScope.projectScope(project));
+
+        if (!views.isEmpty()) {
+            boolean localViewSearch = false;
+            if (resolve.from == ViewResolveFrom.View) {
+                final String value = PhpUtil.getValue(psiElement);
+                localViewSearch = !value.startsWith("@") && !value.startsWith("//");
             }
-
-            final Collection<ViewInfo> views = FileBasedIndex.getInstance()
-                    .getValues(ViewFileIndex.identity, key, GlobalSearchScope.projectScope(project));
-
-            if (views.size() > 0) {
-                boolean localViewSearch = false;
-                if (resolve.from == ViewResolveFrom.View) {
-                    final String value = PhpUtil.getValue(psiElement);
-                    localViewSearch = !value.startsWith("@") && !value.startsWith("//");
+            for (ViewInfo view : views) {
+                if (!resolve.application.equals(view.application)) {
+                    continue;
                 }
-                for (ViewInfo view : views) {
-                    if (!resolve.application.equals(view.application)) {
-                        continue;
-                    }
 
-                    if (localViewSearch && !resolve.theme.equals(view.theme)) {
-                        continue;
-                    }
-
-                    if (view.getVirtualFile() == null) {
-                        continue;
-                    }
-
-                    PsiFile file = PsiManager.getInstance(project).findFile(view.getVirtualFile());
-                    result.add(file);
+                if (localViewSearch && !resolve.theme.equals(view.theme)) {
+                    continue;
                 }
+
+                if (view.getVirtualFile() == null) {
+                    continue;
+                }
+
+                PsiFile file = PsiManager.getInstance(project).findFile(view.getVirtualFile());
+                result.add(file);
             }
         }
 

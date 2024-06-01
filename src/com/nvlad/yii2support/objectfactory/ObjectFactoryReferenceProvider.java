@@ -14,7 +14,7 @@ import java.util.List;
 public class ObjectFactoryReferenceProvider extends com.intellij.psi.PsiReferenceProvider {
     @NotNull
     @Override
-    public ObjectFactoryReference[] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
+    public ObjectFactoryReference @NotNull [] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
         List<ObjectFactoryReference> references = new ArrayList<>();
 
         ObjectFactoryReference reference = new ObjectFactoryReference(psiElement);

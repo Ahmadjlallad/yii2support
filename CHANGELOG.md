@@ -4,6 +4,15 @@ Yii2 Support Change Log
 Waiting for Release
 -------------------
 
+## [0.12] - 2024-09-26
+### Added
+- Support for version 2024.1
+- Support for version 2023.1.4
+
+### Notes
+- Find releases in the [releases](releases) directory.
+
+-------------------
 0.10.58.37 - March 4, 2021
 --------------------------
 - Fix possible invalid completion variants when use "Action" string in action name
